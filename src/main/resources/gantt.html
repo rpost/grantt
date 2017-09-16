@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>$projectName build gantt chart</title>
+        <script>
+            $d3js
+        </script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                width:100%;
+            }
+            
+            h2 {
+                text-align: center;
+                font-family: sans-serif;
+                margin: 5px 0;
+            }
+    
+            #chart-container {
+                position: absolute;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+    
+            rect {
+                fill: #03C03C;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h2>$projectName</h2>
+        <div id="chart-container"></div>
+        <script>
+            var data = $data;
+        </script>
+        
+        <script>
+            var CHART_SIZE_SETTING = {
+                barHeight: 9,
+                barSpacing: 1,
+            }
+        
+            data.sort(function (a, b) {
+                return a.start - b.start;
+            });
+        
+            function toHumanReadableTime(timeMillis) {
+                var ms = timeMillis % 1000;
+                var s = Math.floor(timeMillis / 1000) % 60;
+                var min = Math.floor(timeMillis / (1000 * 60)) % 60;
+                var h = Math.floor(timeMillis / (1000 * 60 * 60));
+        
+                var humanReadable = "";
+        
+                if (h > 0) {
+                    humanReadable += h + "h";
+                }
+                if (min > 0) {
+                    humanReadable += min + "min";
+                }
+                if (s > 0) {
+                    humanReadable += s + "s";
+                }
+                if (ms > 0 && h === 0 && min === 0) {
+                    humanReadable += ms + "ms";
+                }
+                return humanReadable;
+            }
+        
+            var VIRTUAL_CHART_WIDTH = 1000;
+            var chartHeight = data.length * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
+        
+            var svg = d3.select("#chart-container")
+                .append("svg")
+                .attr("viewBox","0 0 " + VIRTUAL_CHART_WIDTH + " " + chartHeight)
+                .attr("preserveAspectRatio", "none")
+                .attr("width", "100%")
+                .attr("height", chartHeight);
+        
+            var min = d3.min(data, function(d) { return d.start });
+            var max = d3.max(data, function(d) { return d.end; });
+            var xScale = d3.scaleLinear()
+                .domain([min, max])
+                .range([0, VIRTUAL_CHART_WIDTH]);
+        
+            svg.selectAll("rect")
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("x",  function(d, i) {
+                    return xScale(d.start);
+                })
+                .attr("y", function(d, i) {
+                    return i * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
+                })
+                .attr("width", function(d) {
+                    return xScale(d.end) - xScale(d.start) + 1;
+                })
+                .attr("height", CHART_SIZE_SETTING.barHeight)
+                .append("title")
+                .text(function(d) {
+                    return d.name + " " + toHumanReadableTime(d.end - d.start);
+                });
+        
+        </script>
+    </body>
+</html>
