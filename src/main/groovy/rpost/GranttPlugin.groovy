@@ -28,18 +28,23 @@ class GranttPlugin implements Plugin<Project> {
         }
 
         project.gradle.buildFinished {
-            Path chartPath = project.buildDir.toPath().resolve("gantt.html")
-            String json = getExecutionTimesAsJson()
-            createChartFile(chartPath, json)
+            File buildDir = project.buildDir
+            buildDir.mkdirs()
+            Path chartPath = buildDir.toPath().resolve("gantt.html")
+            createChartFile(
+                chartPath,
+                getExecutionTimesAsJson(),
+                project.name
+            )
         }
     }
 
-    private void createChartFile(Path chartPath, String json) {
+    private void createChartFile(Path chartPath, String json, String projectName) {
         Template template = new StreamingTemplateEngine().createTemplate(readResource(CHART_TEMPLATE_RESOURCE_PATH))
         Writable templateWithData = template.make([
             d3js       : readResource(D3JS_RESOURCE_PATH),
             data       : json,
-            projectName: project.name,
+            projectName: projectName,
         ])
         IOGroovyMethods.withCloseable(
             Files.newBufferedWriter(
