@@ -30,7 +30,7 @@ and run your build.
 
 #### What?
 
-Open `build/gantt.html`. Expect something similiar to [this](sample/gantt.html)
+Open `build/gantt.html`. Expect something similiar to [this](http://htmlpreview.github.io/?https://github.com/rpost/grantt/blob/master/sample/gantt.html)
 
 
 
