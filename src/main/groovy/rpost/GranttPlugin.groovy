@@ -3,6 +3,7 @@ package rpost
 import groovy.json.JsonOutput
 import groovy.text.StreamingTemplateEngine
 import groovy.text.Template
+import groovy.transform.Canonical
 import org.codehaus.groovy.runtime.IOGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -19,8 +20,7 @@ class GranttPlugin implements Plugin<Project> {
     private static final String D3JS_RESOURCE_PATH = "/META-INF/resources/webjars/d3js/4.10.2/d3.min.js"
     private static final String CHART_TEMPLATE_RESOURCE_PATH = "/gantt.html"
 
-    private Map<String, Long> taskStartTimes = new ConcurrentHashMap<>()
-    private Map<String, Long> taskEndTimes = new ConcurrentHashMap<>()
+    private Map<String, TaskStats> taskTimings = new ConcurrentHashMap<>()
 
     void apply(Project project) {
         project.gradle.taskGraph.whenReady {
@@ -61,8 +61,14 @@ class GranttPlugin implements Plugin<Project> {
     private String getExecutionTimesAsJson() {
         return JsonOutput.prettyPrint(
             JsonOutput.toJson(
-                taskStartTimes.keySet()
-                    .collect({ [name: it, start: taskStartTimes[it], end: taskEndTimes[it]] })
+                taskTimings.entrySet().collect(
+                    { [
+                        name: it.key,
+                        start: it.value.startTimeMillis,
+                        end: it.value.endTimeMillis,
+                        type: it.value.taskType
+                    ] }
+                )
             )
         )
     }
@@ -77,10 +83,18 @@ class GranttPlugin implements Plugin<Project> {
 
     void addTimeRecording(Task task) {
         task.doFirst {
-            taskStartTimes.put(path, System.currentTimeMillis())
+            TaskStats timing = new TaskStats(startTimeMillis: System.currentTimeMillis(), taskType: it.class.getSimpleName())
+            taskTimings.put(path, timing)
         }
         task.doLast {
-            taskEndTimes.put(path, System.currentTimeMillis())
+            taskTimings.get(path).setEndTimeMillis(System.currentTimeMillis())
         }
+    }
+
+    @Canonical
+    class TaskStats {
+        Long startTimeMillis
+        Long endTimeMillis
+        String taskType
     }
 }
