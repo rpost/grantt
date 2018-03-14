@@ -8,12 +8,12 @@
             body {
                 margin: 0;
                 padding: 0;
-                width:100%;
+                width: 100%;
+                font-family: sans-serif;
             }
             
             h2 {
                 text-align: center;
-                font-family: sans-serif;
                 margin: 5px 0;
             }
     
@@ -28,11 +28,24 @@
             rect {
                 fill: #03C03C;
             }
+
+            input, label{
+                vertical-align: middle;
+            }
+
+            input[type=number] {
+                width: 100px;
+            }
         </style>
     </head>
 
     <body>
         <h2>$projectName</h2>
+        <div>
+            <input type="checkbox" id="hideDust"/><label for="hideDust">Hide tasks shorter than</label>
+            <input type="number" id="dustThresholdMs" min="0"><label for="dustThresholdMs">ms</label>
+            <label for="dustThresholdPercent">(</label><input type="number" id="dustThresholdPercent" min="0" max="100"><label for="dustThresholdPercent">%)</label>
+        </div>
         <div id="chart-container"></div>
         <script>
             var data = $data;
@@ -72,40 +85,81 @@
             }
         
             var VIRTUAL_CHART_WIDTH = 1000;
-            var chartHeight = data.length * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
-        
+
             var svg = d3.select("#chart-container")
                 .append("svg")
-                .attr("viewBox","0 0 " + VIRTUAL_CHART_WIDTH + " " + chartHeight)
                 .attr("preserveAspectRatio", "none")
-                .attr("width", "100%")
-                .attr("height", chartHeight);
+                .attr("width", "100%");
         
             var min = d3.min(data, function(d) { return d.start });
             var max = d3.max(data, function(d) { return d.end; });
             var xScale = d3.scaleLinear()
                 .domain([min, max])
                 .range([0, VIRTUAL_CHART_WIDTH]);
-        
-            svg.selectAll("rect")
-                .data(data)
-                .enter()
-                .append("rect")
-                .attr("x",  function(d, i) {
-                    return xScale(d.start);
-                })
-                .attr("y", function(d, i) {
-                    return i * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
-                })
-                .attr("width", function(d) {
-                    return xScale(d.end) - xScale(d.start) + 1;
-                })
-                .attr("height", CHART_SIZE_SETTING.barHeight)
-                .append("title")
-                .text(function(d) {
-                    return d.name + " " + toHumanReadableTime(d.end - d.start);
-                });
-        
+
+            function draw(data) {
+                var chartHeight = data.length * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
+                svg.selectAll("rect").remove();
+                svg.attr("height", chartHeight)
+                    .attr("viewBox","0 0 " + VIRTUAL_CHART_WIDTH + " " + chartHeight)
+                    .selectAll("rect")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("x",  function(d, i) {
+                        return xScale(d.start);
+                    })
+                    .attr("y", function(d, i) {
+                        return i * (CHART_SIZE_SETTING.barHeight + CHART_SIZE_SETTING.barSpacing);
+                    })
+                    .attr("width", function(d) {
+                        return xScale(d.end) - xScale(d.start) + 1;
+                    })
+                    .attr("height", CHART_SIZE_SETTING.barHeight)
+                    .append("title")
+                    .text(function(d) {
+                        return d.name + " " + toHumanReadableTime(d.end - d.start);
+                    });
+            }
+
+            function redraw() {
+                if (document.getElementById("hideDust").checked) {
+                    var thresholdAsString = document.getElementById("dustThresholdMs").value.trim();
+                    if (thresholdAsString.match(/^[0-9]+$/)) {
+                        var threshold = parseInt(thresholdAsString, 10);
+                        draw(data.filter(e => (e.end - e.start) > threshold));
+                    }
+                } else {
+                    draw(data);
+                }
+            }
+
+            function recalculateThresholdPercent() {
+                var thresholdAsString = document.getElementById("dustThresholdMs").value.trim();
+                if (thresholdAsString.match(/^[0-9]+$/)) {
+                    var threshold = parseInt(thresholdAsString, 10);
+                    document.getElementById("dustThresholdPercent").value = threshold / (max - min);
+                }
+            }
+
+            function recalculateThresholdMs() {
+                var thresholdAsString = document.getElementById("dustThresholdPercent").value.trim();
+                if (thresholdAsString.match(/^[0-9]+(\.[0-9]+)?$/)) {
+                    var threshold = parseFloat(thresholdAsString, 10);
+                    document.getElementById("dustThresholdMs").value = Math.round(threshold * (max - min) / 100);
+                }
+            }
+
+            d3.select("#hideDust")
+                .on("click", redraw);
+
+            d3.select("#dustThresholdMs")
+                .on("change", _ => recalculateThresholdPercent() || redraw())
+
+            d3.select("#dustThresholdPercent")
+                .on("change", _ => recalculateThresholdMs() || redraw())
+
+            draw(data);
         </script>
     </body>
 </html>
