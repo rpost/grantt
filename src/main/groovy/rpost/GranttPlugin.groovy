@@ -29,13 +29,14 @@ class GranttPlugin implements Plugin<Project> {
 
         project.gradle.buildFinished {
             File buildDir = project.buildDir
-            buildDir.mkdirs()
-            Path chartPath = buildDir.toPath().resolve("gantt.html")
-            createChartFile(
-                chartPath,
-                getExecutionTimesAsJson(),
-                project.name
-            )
+            if (buildDir.exists()) {
+                Path chartPath = buildDir.toPath().resolve("gantt.html")
+                createChartFile(
+                    chartPath,
+                    getExecutionTimesAsJson(),
+                    project.name
+                )
+            }
         }
     }
 
