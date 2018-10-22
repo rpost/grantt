@@ -1,8 +1,8 @@
-#### Why?
+## Why?
 
 Picture is worth a thousand words they say. They also wonder why their gradle multimodule build takes so long.
 
-#### How?
+## How?
 
 Follow instructions from [gradle plugin portal entry](https://plugins.gradle.org/plugin/rpost.grantt) to add plugin, ie either:
 ```groovy
@@ -28,7 +28,7 @@ apply plugin: "rpost.grantt"
 
 and run your build.
 
-#### What?
+## What?
 
 Open `build/gantt.html`. Expect something similiar to [this](http://htmlpreview.github.io/?https://github.com/rpost/grantt/blob/master/sample/gantt.html)
 
