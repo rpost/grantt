@@ -17,7 +17,7 @@ buildscript {
 }
 
 group = "rpost"
-version = "0.2"
+version = "0.3"
 
 sourceCompatibility = 1.8
 

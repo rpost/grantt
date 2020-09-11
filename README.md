@@ -7,7 +7,7 @@ Picture is worth a thousand words they say. They also wonder why their gradle mu
 Follow instructions from [gradle plugin portal entry](https://plugins.gradle.org/plugin/rpost.grantt) to add plugin, ie either:
 ```groovy
 plugins {
-  id "rpost.grantt" version "0.2"
+  id "rpost.grantt" version "0.3"
 }
 ```
 or:
@@ -19,7 +19,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "gradle.plugin.rpost:grantt:0.2"
+    classpath "gradle.plugin.rpost:grantt:0.3"
   }
 }
 
