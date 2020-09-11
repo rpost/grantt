@@ -7,7 +7,6 @@ import groovy.transform.Canonical
 import org.codehaus.groovy.runtime.IOGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -23,8 +22,13 @@ class GranttPlugin implements Plugin<Project> {
     private Map<String, TaskStats> taskTimings = new ConcurrentHashMap<>()
 
     void apply(Project project) {
-        project.gradle.taskGraph.whenReady {
-            it.allTasks.each { task -> addTimeRecording(task)}
+        project.gradle.taskGraph.beforeTask { task ->
+            TaskStats timing = new TaskStats(startTimeMillis: System.currentTimeMillis(), taskType: task.class.getSimpleName())
+            taskTimings.put(task.path, timing)
+        }
+
+        project.gradle.taskGraph.afterTask { task, state ->
+            taskTimings.get(task.path).setEndTimeMillis(System.currentTimeMillis())
         }
 
         project.gradle.buildFinished {
@@ -80,16 +84,6 @@ class GranttPlugin implements Plugin<Project> {
             .withInputStream {
                 is -> return is.getText(StandardCharsets.UTF_8.name())
             }
-    }
-
-    void addTimeRecording(Task task) {
-        task.doFirst {
-            TaskStats timing = new TaskStats(startTimeMillis: System.currentTimeMillis(), taskType: it.class.getSimpleName())
-            taskTimings.put(path, timing)
-        }
-        task.doLast {
-            taskTimings.get(path).setEndTimeMillis(System.currentTimeMillis())
-        }
     }
 
     @Canonical
