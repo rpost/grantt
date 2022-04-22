@@ -1,3 +1,6 @@
+[![Valid Gradle Wrapper](https://github.com/rpost/grantt/workflows/Validate%20Gradle%20Wrapper/badge.svg)](https://github.com/rpost/grantt/actions/workflows/gradle-wrapper-validation.yml)
+[![Gradle Status](https://gradleupdate.appspot.com/rpost/grantt/status.svg)](https://gradleupdate.appspot.com/rpost/grantt/status)
+
 ## Why?
 
 Picture is worth a thousand words they say. They also wonder why their gradle multimodule build takes so long.
